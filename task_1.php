@@ -26,7 +26,6 @@ class TelegraphText
             'published' => $this->published
         ];
         $serialize = serialize($storeText);
-        // данные, которые храняться в serialize нужно поместить в файл чье имя храниться в slug
         file_put_contents($this->slug, $serialize);
     }
 
@@ -88,25 +87,25 @@ abstract class User
 
 class FileStorage extends Storage
 {
-    function create($obj) 
+    public function create($obj) 
     {
         $now = new DateTime();
         $date = $now->format('Y-m-d');
         $slug = $obj->slug;
         $slug = explode('.', $slug);
         print_r($slug);
-        echo $fileName = $slug[0] . '_' . $date . '.' . $slug[1];
+        $fileName = $slug[0] . '_' . $date . '.' . $slug[1];
         $i = 0;
         while (file_exists($fileName)) {
             $i++;
-            echo $fileName = $slug[0] . '_' . $date .  '_' . $i . '.'  . $slug[1];
+            $fileName = $slug[0] . '_' . $date .  '_' . $i . '.'  . $slug[1];
         }
         $obj->slug = $fileName;
-        $serialize = serialize ($obj);
+        $serialize = serialize($obj);
         file_put_contents ($fileName, $serialize);
-        return $fileName; 
+        return $fileName;
     }
-    function read($id, $slug) 
+    public function read($id, $slug) 
     {   
         if (file_exists($slug)) { 
             $serialize = file_get_contents($slug); 
@@ -115,32 +114,33 @@ class FileStorage extends Storage
         } 
         
     }
-    function update($id, $slug, $obj)
+    public function update($id, $slug, $obj)
     {
         if (file_exists($slug)) {
             $serialize = serialize ($obj);
             file_put_contents ($slug, $serialize);
         }
     }
-    function delete($id, $slug)
+    public function delete($id, $slug)
     {
         if (file_exists($slug)) {
             unlink($slug);
         }
     }
-    function list()
+    public function list()
     {
         $files = scandir(__DIR__);
-        print_r ($files);
+        print_r($files);
         foreach ($files as $value) {
-            
             $pos = strpos($value, '.txt');
             if ($pos != false) {
                 echo $value;
-                $files_true[] = $value;
+                $serialize = file_get_contents($value); 
+                $obj = unserialize ($serialize); 
+                $files_true[] = $obj;
             }
         }
-    print_r ($files_true); 
+        return $files_true; 
     }
 }
 $TelegraphText = new TelegraphText('viktor', 'textclass.txt');
@@ -156,5 +156,5 @@ $fileName = $fileStorage->create($TelegraphText);
 $fileStorage->update(null, $fileName, $TelegraphText);
 var_dump($TelegraphText);
 echo $fileName;
-$fileStorage->list();
+var_dump ($fileStorage->list());
 
